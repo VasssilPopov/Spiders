@@ -4,9 +4,10 @@ import logging
 import json
 from sys import exit, path
 # path.append('/home/peio/dev/Scrapy')
-path.append('C:\STUDY_PYTHON\Projects\LIBRARIES')
+path.append('C:\STUDY_SPIDERS\Spiders\Library')
 from ScrapingHelpers import *
 from datetime import date, timedelta
+from scrapy.selector import HtmlXPathSelector
 
 # '$ scrapy crawl Dnevnik -o Dnevnik.json -t jsonlines'
 # scrapy runspider BlitzSpider.py -o Blitz-03-May-2017.json -t json
@@ -29,7 +30,7 @@ class BlitzSpider(scrapy.Spider):
 
 	def __init__(self):
 
-		self.urls = ["www.blitz.bg/politika"]
+		self.urls = ["http://www.blitz.bg/politika","http://www.blitz.bg/obshtestvo"]
 		#[  'http://www.dnevnik.bg/allnews/today/']
 		self.json_datafile = 'Blitz-'+Today+'.json'
 		self.links_seen = self.get_ids(self.json_datafile)
@@ -45,16 +46,19 @@ class BlitzSpider(scrapy.Spider):
 		return set(ids)
 
 	def start_requests(self):
-		print 'type(self.urls) '
-		print type(self.urls)
 		for url in self.urls:
 			yield scrapy.Request(url=url, callback=self.parse)    
 
 	def parse(self, response):
+	
+		hxs = HtmlXPathSelector(response)
+		qqq = hxs.select("/html/head/link[@type='application/rss+xml']/@href").extract()
+		print '>>> '
+		print qqq
+	
 		# 'We need the titles, links and times to index and follow'
 		# links = response.xpath("//a[@class='news_in_a']/@href").extract()
-		links = response.xpath("//h3/a/@href").extract()
-	
+		links = response.xpath("//article/a/@href").extract()
 		for link in links:
 			if link not in self.links_seen:
 				yield scrapy.Request(url=link, callback=self.parse_page)
@@ -72,6 +76,6 @@ class BlitzSpider(scrapy.Spider):
 		yield {
 			'url': url,
 			'title': title,
-			'article': article
+			'text': article
 
 		}	

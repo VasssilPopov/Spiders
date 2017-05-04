@@ -65,8 +65,10 @@ class DnevnikSpider(scrapy.Spider):
 
 	def parse_page(self, response):
 		url   = response.url
-		title = response.css('div.content>h1::text').extract()[0].strip()
-		
+		try:
+			title = response.css('div.content>h1::text').extract()[0].strip()
+		except:
+			title = ""
 		# art_alternatives = {}
 		# art_alternatives[0] = response.css('div.article::text').extract()
 		# art_alternatives[1] = response.css('div.article span::text').extract()
@@ -87,6 +89,6 @@ class DnevnikSpider(scrapy.Spider):
 		yield {
 			'url': url,
 			'title': title,
-			'article': article
+			'text': article
 
 		}	
